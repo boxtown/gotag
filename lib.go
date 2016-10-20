@@ -47,26 +47,27 @@ func (tc *TestContext) Skip(tag string) {
 // Test executes a test under the given tag with the given testing environment
 // within the context of the TestContext instance
 func (tc *TestContext) Test(tag string, t *testing.T, testFn func(t *testing.T)) {
-	if _, ok := tc.skip[tag]; ok {
-		t.SkipNow()
-	} else {
-		if tc.Fuzzy && tc.checkFuzzy(t, tag) {
-			return
-		}
-		testFn(t)
-	}
+	tc.run(tag, t, func(s skippable) {
+		testFn(s.(*testing.T))
+	})
 }
 
 // Benchmark executes a benchmark under the given tag with the given benchmarking
 // environment within the context of the TestFlags instance
 func (tc *TestContext) Benchmark(tag string, b *testing.B, benchmarkFn func(b *testing.B)) {
+	tc.run(tag, b, func(s skippable) {
+		benchmarkFn(s.(*testing.B))
+	})
+}
+
+func (tc *TestContext) run(tag string, s skippable, fn func(s skippable)) {
 	if _, ok := tc.skip[tag]; ok {
-		b.SkipNow()
+		s.SkipNow()
 	} else {
-		if tc.Fuzzy && tc.checkFuzzy(b, tag) {
+		if tc.Fuzzy && tc.checkFuzzy(s, tag) {
 			return
 		}
-		benchmarkFn(b)
+		fn(s)
 	}
 }
 
