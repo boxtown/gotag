@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -20,6 +21,9 @@ func main() {
 		gotag.Skip(strings.TrimSpace(v))
 	}
 	cmd := exec.Command("go", "test")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err.Error())
