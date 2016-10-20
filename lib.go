@@ -1,4 +1,4 @@
-package tflag
+package gotag
 
 import (
 	"fmt"

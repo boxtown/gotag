@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	tflag "github.com/boxtown/tflag/lib"
+	"github.com/boxtown/gotag"
 )
 
 var skips string
@@ -17,7 +17,7 @@ func init() {
 
 func main() {
 	for _, v := range strings.Split(skips, ",") {
-		tflag.Skip(strings.TrimSpace(v))
+		gotag.Skip(strings.TrimSpace(v))
 	}
 	cmd := exec.Command("go", "test")
 	err := cmd.Run()
