@@ -13,9 +13,9 @@ const (
 	EndToEnd = "endtoend"
 )
 
-// TestFlags contains information necessary
+// TestContext contains information necessary
 // to run or skip tests
-type TestFlags struct {
+type TestContext struct {
 	skip map[string]bool
 
 	// Verbose will print information messages
@@ -33,53 +33,53 @@ type TestFlags struct {
 	Fuzzy bool
 }
 
-// New constructs a new instance of TestFlags
-func New() *TestFlags {
-	return &TestFlags{skip: make(map[string]bool), EditDistance: 2}
+// New constructs a new instance of TestContext
+func New() *TestContext {
+	return &TestContext{skip: make(map[string]bool), EditDistance: 2}
 }
 
-// Skip marks a test flag to be skipped when testing
-// within the context of the TestFlags instance
-func (tf *TestFlags) Skip(flag string) {
-	tf.skip[flag] = true
+// Skip marks a test tag to be skipped when testing
+// within the context of the TestContext instance
+func (tc *TestContext) Skip(tag string) {
+	tc.skip[tag] = true
 }
 
-// Test executes a test under the given flag with the given testing environment
-// within the context of the TestFlags instance
-func (tf *TestFlags) Test(flag string, t *testing.T, testFn func(t *testing.T)) {
-	if _, ok := tf.skip[flag]; ok {
+// Test executes a test under the given tag with the given testing environment
+// within the context of the TestContext instance
+func (tc *TestContext) Test(tag string, t *testing.T, testFn func(t *testing.T)) {
+	if _, ok := tc.skip[tag]; ok {
 		t.SkipNow()
 	} else {
-		if tf.Fuzzy && tf.checkFuzzy(t, flag) {
+		if tc.Fuzzy && tc.checkFuzzy(t, tag) {
 			return
 		}
 		testFn(t)
 	}
 }
 
-// Benchmark executes a benchmark under the given flag with the given benchmarking
+// Benchmark executes a benchmark under the given tag with the given benchmarking
 // environment within the context of the TestFlags instance
-func (tf *TestFlags) Benchmark(flag string, b *testing.B, benchmarkFn func(b *testing.B)) {
-	if _, ok := tf.skip[flag]; ok {
+func (tc *TestContext) Benchmark(tag string, b *testing.B, benchmarkFn func(b *testing.B)) {
+	if _, ok := tc.skip[tag]; ok {
 		b.SkipNow()
 	} else {
-		if tf.Fuzzy && tf.checkFuzzy(b, flag) {
+		if tc.Fuzzy && tc.checkFuzzy(b, tag) {
 			return
 		}
 		benchmarkFn(b)
 	}
 }
 
-func (tf *TestFlags) checkFuzzy(s skippable, flag string) bool {
-	for k := range tf.skip {
-		if levenshtein(k, flag) > tf.EditDistance {
+func (tc *TestContext) checkFuzzy(s skippable, tag string) bool {
+	for k := range tc.skip {
+		if levenshtein(k, tag) > tc.EditDistance {
 			continue
 		}
 
-		if tf.Verbose {
+		if tc.Verbose {
 			fmt.Printf(
-				"Found registered skip flag %s within %d edit distance of flag %s, skipping\n",
-				k, tf.EditDistance, flag)
+				"Found registered skip tag '%s' within an edit distance of %d of tag '%s', skipping...\n",
+				k, tc.EditDistance, tag)
 		}
 		s.SkipNow()
 		return true
@@ -92,38 +92,38 @@ type skippable interface {
 	SkipNow()
 }
 
-var tf *TestFlags
+var tc *TestContext
 
 func init() {
-	tf = New()
+	tc = New()
 }
 
-// Skip marks a test flag to be skipped when running tests
+// Skip marks a test tag to be skipped when running tests
 // within the default context
-func Skip(flag string) {
-	tf.Skip(flag)
+func Skip(tag string) {
+	tc.Skip(tag)
 }
 
 // Fuzzy sets fuzzy matching for the default context
 func Fuzzy(fuzzy bool) {
-	tf.Fuzzy = fuzzy
+	tc.Fuzzy = fuzzy
 }
 
 // Distance sets the fuzzy matching distance for the default context
 func Distance(distance int) {
-	tf.EditDistance = distance
+	tc.EditDistance = distance
 }
 
-// Test executes a test under the given flag with the given testing
+// Test executes a test under the given tag with the given testing
 // environment within the default context
-func Test(flag string, t *testing.T, testFn func(t *testing.T)) {
-	tf.Test(flag, t, testFn)
+func Test(tag string, t *testing.T, testFn func(t *testing.T)) {
+	tc.Test(tag, t, testFn)
 }
 
-// Benchmark executes a benchmark under the given flag with the
+// Benchmark executes a benchmark under the given tag with the
 // the given benchmarking environment withint the default context
-func Benchmark(flag string, b *testing.B, benchmarkFn func(b *testing.B)) {
-	tf.Benchmark(flag, b, benchmarkFn)
+func Benchmark(tag string, b *testing.B, benchmarkFn func(b *testing.B)) {
+	tc.Benchmark(tag, b, benchmarkFn)
 }
 
 // iterative implementation of levenshtein distance algorithm
