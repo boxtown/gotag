@@ -18,6 +18,10 @@ const (
 type TestFlags struct {
 	skip map[string]bool
 
+	// Verbose will print information messages
+	// if set to true
+	Verbose bool
+
 	// EditDistance is the maximum distance between a test flag
 	// and a registered flag that will trigger a skip if Fuzzy
 	// is true
@@ -46,16 +50,8 @@ func (tf *TestFlags) Test(flag string, t *testing.T, testFn func(t *testing.T)) 
 	if _, ok := tf.skip[flag]; ok {
 		t.SkipNow()
 	} else {
-		if tf.Fuzzy {
-			for k := range tf.skip {
-				if levenshtein(k, flag) < tf.EditDistance {
-					fmt.Printf(
-						"Found registered skip flag %s within %d edit distance of flag %s, skipping\n",
-						k, tf.EditDistance, flag)
-					t.SkipNow()
-					return
-				}
-			}
+		if tf.Fuzzy && tf.checkFuzzy(t, flag) {
+			return
 		}
 		testFn(t)
 	}
@@ -67,19 +63,33 @@ func (tf *TestFlags) Benchmark(flag string, b *testing.B, benchmarkFn func(b *te
 	if _, ok := tf.skip[flag]; ok {
 		b.SkipNow()
 	} else {
-		if tf.Fuzzy {
-			for k := range tf.skip {
-				if levenshtein(k, flag) < tf.EditDistance {
-					fmt.Printf(
-						"Found registered skip flag %s within %d edit distance of flag %s, skipping\n",
-						k, tf.EditDistance, flag)
-					b.SkipNow()
-					return
-				}
-			}
+		if tf.Fuzzy && tf.checkFuzzy(b, flag) {
+			return
 		}
 		benchmarkFn(b)
 	}
+}
+
+func (tf *TestFlags) checkFuzzy(s skippable, flag string) bool {
+	for k := range tf.skip {
+		if levenshtein(k, flag) > tf.EditDistance {
+			continue
+		}
+
+		if tf.Verbose {
+			fmt.Printf(
+				"Found registered skip flag %s within %d edit distance of flag %s, skipping\n",
+				k, tf.EditDistance, flag)
+		}
+		s.SkipNow()
+		return true
+	}
+	return false
+}
+
+type skippable interface {
+	Skip(...interface{})
+	SkipNow()
 }
 
 var tf *TestFlags
