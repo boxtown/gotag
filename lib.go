@@ -19,14 +19,14 @@ type TestFlags struct {
 	skip map[string]bool
 
 	// EditDistance is the maximum distance between a test flag
-	// and a registered flag that will trigger a skip if Strict
+	// and a registered flag that will trigger a skip if Fuzzy
 	// is true
 	EditDistance int
 
-	// If Strict is true, will skip tests that are within
+	// If Fuzzy is true, will skip tests that are within
 	// EditDistance of a registered skipped flag and output
 	// to stdout why the skip occurred
-	Strict bool
+	Fuzzy bool
 }
 
 // New constructs a new instance of TestFlags
@@ -46,7 +46,7 @@ func (tf *TestFlags) Test(flag string, t *testing.T, testFn func(t *testing.T)) 
 	if _, ok := tf.skip[flag]; ok {
 		t.SkipNow()
 	} else {
-		if tf.Strict {
+		if tf.Fuzzy {
 			for k := range tf.skip {
 				if levenshtein(k, flag) < tf.EditDistance {
 					fmt.Printf(
@@ -67,7 +67,7 @@ func (tf *TestFlags) Benchmark(flag string, b *testing.B, benchmarkFn func(b *te
 	if _, ok := tf.skip[flag]; ok {
 		b.SkipNow()
 	} else {
-		if tf.Strict {
+		if tf.Fuzzy {
 			for k := range tf.skip {
 				if levenshtein(k, flag) < tf.EditDistance {
 					fmt.Printf(
@@ -92,6 +92,16 @@ func init() {
 // within the default context
 func Skip(flag string) {
 	tf.Skip(flag)
+}
+
+// Fuzzy sets fuzzy matching for the default context
+func Fuzzy(fuzzy bool) {
+	tf.Fuzzy = fuzzy
+}
+
+// Distance sets the fuzzy matching distance for the default context
+func Distance(distance int) {
+	tf.EditDistance = distance
 }
 
 // Test executes a test under the given flag with the given testing
