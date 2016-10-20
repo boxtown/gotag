@@ -16,7 +16,8 @@ const (
 // TestContext contains information necessary
 // to run or skip tests
 type TestContext struct {
-	skip map[string]bool
+	skip    map[string]bool
+	runOnly map[string]bool
 
 	// Verbose will print information messages
 	// if set to true
@@ -35,13 +36,28 @@ type TestContext struct {
 
 // New constructs a new instance of TestContext
 func New() *TestContext {
-	return &TestContext{skip: make(map[string]bool), EditDistance: 2}
+	return &TestContext{
+		skip:         make(map[string]bool),
+		runOnly:      make(map[string]bool),
+		EditDistance: 2,
+	}
 }
 
-// Skip marks a test tag to be skipped when testing
+// Skip marks test tags to be skipped when testing
 // within the context of the TestContext instance
-func (tc *TestContext) Skip(tag string) {
-	tc.skip[tag] = true
+func (tc *TestContext) Skip(tags ...string) {
+	for _, tag := range tags {
+		tc.skip[tag] = true
+	}
+}
+
+// RunOnly marks specific tests to be run. If this method is called
+// with a non-empty argument, then only the given tests will run. the
+// tags passed to this method take precedence over those passed to Skip
+func (tc *TestContext) RunOnly(tags ...string) {
+	for _, tag := range tags {
+		tc.runOnly[tag] = true
+	}
 }
 
 // Test executes a test under the given tag with the given testing environment
@@ -61,31 +77,65 @@ func (tc *TestContext) Benchmark(tag string, b *testing.B, benchmarkFn func(b *t
 }
 
 func (tc *TestContext) run(tag string, s skippable, fn func(s skippable)) {
-	if _, ok := tc.skip[tag]; ok {
+	match, reason := tc.shouldSkip(tag)
+	switch reason {
+	case foundInSkip, notInRunOnly:
 		s.SkipNow()
-	} else {
-		if tc.Fuzzy && tc.checkFuzzy(s, tag) {
-			return
+	case fuzzyMatchSkip:
+		if tc.Verbose {
+			fmt.Printf(
+				"Found registered skip tag '%s' within an edit distance of %d of tag '%s', skipping...\n",
+				match, tc.EditDistance, tag)
 		}
+		s.SkipNow()
+	case doNotSkipFuzzy:
+		if tc.Verbose {
+			fmt.Printf(
+				"Found registered run tag '%s' within an edit distance of %d of tag '%s', running...\n",
+				match, tc.EditDistance, tag)
+		}
+		fn(s)
+	default:
 		fn(s)
 	}
 }
 
-func (tc *TestContext) checkFuzzy(s skippable, tag string) bool {
-	for k := range tc.skip {
+func (tc *TestContext) shouldSkip(tag string) (string, skipReason) {
+	runOnly := len(tc.runOnly) > 0
+	skip := tc.skip[tag]
+	run := tc.runOnly[tag]
+	if !tc.Fuzzy {
+		if skip && !run {
+			return "", foundInSkip
+		}
+		return "", doNotSkip
+	}
+
+	skipMatch, skipFuzzy := tc.checkFuzzy(tag, tc.skip)
+	runMatch, runFuzzy := tc.checkFuzzy(tag, tc.runOnly)
+	if skip && !(run || runFuzzy) {
+		return "", foundInSkip
+	}
+	if skipFuzzy && !(run || runFuzzy) {
+		return skipMatch, fuzzyMatchSkip
+	}
+	if runOnly && !run {
+		if runFuzzy {
+			return runMatch, doNotSkipFuzzy
+		}
+		return "", notInRunOnly
+	}
+	return "", doNotSkip
+}
+
+func (tc *TestContext) checkFuzzy(tag string, collection map[string]bool) (string, bool) {
+	for k := range collection {
 		if levenshtein(k, tag) > tc.EditDistance {
 			continue
 		}
-
-		if tc.Verbose {
-			fmt.Printf(
-				"Found registered skip tag '%s' within an edit distance of %d of tag '%s', skipping...\n",
-				k, tc.EditDistance, tag)
-		}
-		s.SkipNow()
-		return true
+		return k, true
 	}
-	return false
+	return "", false
 }
 
 type skippable interface {
@@ -93,16 +143,39 @@ type skippable interface {
 	SkipNow()
 }
 
+type skipReason int
+
+const (
+	doNotSkip skipReason = iota
+	doNotSkipFuzzy
+	foundInSkip
+	fuzzyMatchSkip
+	notInRunOnly
+)
+
 var tc *TestContext
 
 func init() {
 	tc = New()
 }
 
-// Skip marks a test tag to be skipped when running tests
+// Skip marks test tags to be skipped when running tests
 // within the default context
-func Skip(tag string) {
-	tc.Skip(tag)
+func Skip(tags ...string) {
+	tc.Skip(tags...)
+}
+
+// RunOnly marks specific tests to be run within the default context.
+// If this method is called with a non-empty argument, then only the
+// given tests will run. the tags passed to this method take precedence
+// over those passed to Skip
+func RunOnly(tags ...string) {
+	tc.RunOnly(tags...)
+}
+
+// Verbose sets the verbosity of the default context
+func Verbose(verbose bool) {
+	tc.Verbose = verbose
 }
 
 // Fuzzy sets fuzzy matching for the default context
