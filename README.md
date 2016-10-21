@@ -8,6 +8,9 @@ of integration tests to be skipped, then **Gotag** is the tool for the job.
 
 # Contents
 [Usage](#usage)
+[Selectively running tests](#selectively-running-tests)
+[Tags](#tags)
+[Roadmap](#roadmap)
 
 ## Usage
 
@@ -129,3 +132,8 @@ The edit distance can be configured as well
 ```Go
 gotag.Distance(5)
 ```
+
+## Roadmap
+
+- Load configuration from configuration files
+- Hooks for Before/After test logic
