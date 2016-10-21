@@ -1,0 +1,94 @@
+# Gotag
+--------
+**Gotag** is a testing utility tool that makes it easy for you to selectively skip/run tests in Go. If you ever needed to mark a suite
+of integration tests to be skipped, then **Gotag** is the tool for the job.  
+
+## Usage
+
+Simply run
+```
+go get github.com/boxtown/gotag
+```
+to install **Gotag**.  
+  
+To use **Gotag**, configure the test context in either `init` or `TestMain` and then wrap your tests inside  
+`Test` or `Benchmark` like so:  
+
+```Go
+import (
+  "fmt"
+  "testing"
+   "github.com/boxtown/gotag"
+)
+
+func TestMain(m *testing.Main) {
+  gotag.Skip(gotag.Integration)
+  os.exit(m.Run())
+}
+
+// This test will not run
+func TestSomethingIntegrated(t *testing.T) {
+  gotag.Test(gotag.Integration, t, func(t *testing.T) {
+    t.FailNow()
+  })
+}
+
+// This test will
+func TestSomethingElse(t *testing.T) {
+  gotag.Test("something else", t, func(t *testing.T) {
+    fmt.Println("I'm running inside the Gotag context!")
+  })
+}
+
+// This test will also run
+func TestSomethingBasic(t *testing.T) {
+  fmt.Println("Gotag has no knowledge of me!")
+}
+```
+
+## Selectively running tests
+
+You can also choose to run only certain tags. Note that by calling RunOnly skip is ignored
+
+```Go
+import (
+  "fmt"
+  "testing"
+  "github.com/boxtown/gotag"
+)
+
+func TestMain(m *testing.M) {
+  gotag.RunOnly("tagA", "tagB")
+  os.Exit(m.Run())
+}
+
+// Does not get run because tag is not marked by RunOnly
+func TestSomethingIntegrated(t *testing.T) {
+  gotag.Test(gotag.Integrated, t, func(t *testing.T) {
+    t.FailNow()
+  })
+}
+
+// This will run
+func TestTagA(t *testing.T) {
+  gotag.Test("tagA", t, func(t *testing.T) {
+    fmt.Println("I'm tagA!")
+  })
+}
+
+// This will also run
+func BenchmarkTagB(b *testing.B) {
+  gotag.Benchmark("tagB", b, func(b *testing.B) {
+    fmt.Println("I'm tagB!")
+  })
+}
+```
+
+## Tags
+
+Tags are just simple strings. By default, **Gotag** does a strict match when checking for skip/run tags.
+**Gotag** can be configured however, to do a fuzzy matching on tags
+
+```
+
+```
