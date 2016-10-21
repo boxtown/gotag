@@ -10,7 +10,7 @@ const (
 	Integration = "integration"
 
 	// EndToEnd is a flag for end to end tests
-	EndToEnd = "endtoend"
+	EndToEnd = "end-to-end"
 )
 
 // T is an interface that matches testing.T. This allows
@@ -98,8 +98,8 @@ func (tc *TestContext) Skip(tags ...string) {
 }
 
 // RunOnly marks specific tests to be run. If this method is called
-// with a non-empty argument, then only the given tests will run. the
-// tags passed to this method take precedence over those passed to Skip
+// with a non-empty argument, then only the given tests will run.
+// Marking tags as run only will by default make the context ignore skipped tags.
 func (tc *TestContext) RunOnly(tags ...string) {
 	for _, tag := range tags {
 		tc.runOnly[tag] = true
@@ -217,8 +217,8 @@ func Skip(tags ...string) {
 
 // RunOnly marks specific tests to be run within the default context.
 // If this method is called with a non-empty argument, then only the
-// given tests will run. the tags passed to this method take precedence
-// over those passed to Skip
+// given tests will run. Marking tags as run only will by default make
+// the context ignore skipped tags.
 func RunOnly(tags ...string) {
 	tc.RunOnly(tags...)
 }
@@ -245,7 +245,7 @@ func Test(tag string, t T, testFn func(t T)) {
 }
 
 // Benchmark executes a benchmark under the given tag with the
-// the given benchmarking environment withint the default context
+// the given benchmarking environment within the default context
 func Benchmark(tag string, b B, benchmarkFn func(b B)) {
 	tc.Benchmark(tag, b, benchmarkFn)
 }
