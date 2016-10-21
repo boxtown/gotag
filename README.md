@@ -1,7 +1,7 @@
 # Gotag
 
 [![GoDoc](https://godoc.org/github.com/boxtown/gotag?status.svg)](https://godoc.org/github.com/boxtown/gotag) 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/boxtown/boxtown/blob/master/LICENSE.md)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/boxtown/gotag/blob/master/LICENSE.md)
 
 
 **Gotag** is a testing utility tool that makes it easy for you to selectively skip/run tests in Go. If you ever needed to mark a suite
