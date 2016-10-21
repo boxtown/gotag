@@ -7,9 +7,9 @@
 of integration tests to be skipped, then **Gotag** is the tool for the job. 
 
 # Contents
-[Usage](#usage)
-[Selectively running tests](#selectively-running-tests)
-[Tags](#tags)
+[Usage](#usage)  
+[Selectively running tests](#selectively-running-tests)  
+[Tags](#tags)  
 [Roadmap](#roadmap)
 
 ## Usage
