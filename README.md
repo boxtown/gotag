@@ -28,14 +28,14 @@ func TestMain(m *testing.Main) {
 
 // This test will not run
 func TestSomethingIntegrated(t *testing.T) {
-  gotag.Test(gotag.Integration, t, func(t *testing.T) {
+  gotag.Test(gotag.Integration, t, func(t gotag.T) {
     t.FailNow()
   })
 }
 
 // This test will
 func TestSomethingElse(t *testing.T) {
-  gotag.Test("something else", t, func(t *testing.T) {
+  gotag.Test("something else", t, func(t gotag.T) {
     fmt.Println("I'm running inside the Gotag context!")
   })
 }
@@ -64,21 +64,21 @@ func TestMain(m *testing.M) {
 
 // Does not get run because tag is not marked by RunOnly
 func TestSomethingIntegrated(t *testing.T) {
-  gotag.Test(gotag.Integrated, t, func(t *testing.T) {
+  gotag.Test(gotag.Integrated, t, func(t gotag.T) {
     t.FailNow()
   })
 }
 
 // This will run
 func TestTagA(t *testing.T) {
-  gotag.Test("tagA", t, func(t *testing.T) {
+  gotag.Test("tagA", t, func(t gotag.T) {
     fmt.Println("I'm tagA!")
   })
 }
 
 // This will also run
 func BenchmarkTagB(b *testing.B) {
-  gotag.Benchmark("tagB", b, func(b *testing.B) {
+  gotag.Benchmark("tagB", b, func(b gotag.B) {
     fmt.Println("I'm tagB!")
   })
 }
@@ -89,6 +89,37 @@ func BenchmarkTagB(b *testing.B) {
 Tags are just simple strings. By default, **Gotag** does a strict match when checking for skip/run tags.
 **Gotag** can be configured however, to do a fuzzy matching on tags
 
+```Go
+import (
+  "fmt"
+  "testing"
+  "github.com/boxtown/gotag"
+)
+
+func TestMain(m *testing.M) {
+  gotag.Skip("tagA")
+  gotag.Fuzzy(true)
+  os.Exit(m.Run())
+}
+
+// Skipped
+func TestTagA(t *testing.T) {
+  gotag.Test("tagA", t, func(t gotag.T) {
+    t.FailNow()
+  })
+}
+
+// Also skipped because of fuzzy matching
+func TestTaga(t *testing.T) {
+  gotag.Test("taga", t, func(t gotag.T) {
+    t.FailNow()
+  })
+}
 ```
 
+In the above example, the second test runs because it is within an edit distance of 2 (the default) of the registered tag.
+The edit distance can be configured as well
+
+```Go
+gotag.Distance(5)
 ```
