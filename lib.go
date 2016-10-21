@@ -13,6 +13,52 @@ const (
 	EndToEnd = "endtoend"
 )
 
+// T is an interface that matches testing.T. This allows
+// gotag to actually be testable
+type T interface {
+	Error(...interface{})
+	Errorf(string, ...interface{})
+	Fail()
+	FailNow()
+	Failed() bool
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+	Log(...interface{})
+	Logf(string, ...interface{})
+	Parallel()
+	Run(string, func(*testing.T)) bool
+	Skip(...interface{})
+	SkipNow()
+	Skipf(string, ...interface{})
+	Skipped() bool
+}
+
+// B is an interface that matches testing.B. This allows
+// gotag to actually be testable
+type B interface {
+	Error(...interface{})
+	Errorf(string, ...interface{})
+	Fail()
+	FailNow()
+	Failed() bool
+	Fatal(...interface{})
+	Fatalf(string, ...interface{})
+	Log(...interface{})
+	Logf(string, ...interface{})
+	ReportAllocs()
+	ResetTimer()
+	Run(string, func(*testing.T)) bool
+	RunParallel(func(*testing.PB))
+	SetBytes(int64)
+	SetParallelism(int)
+	Skip(...interface{})
+	SkipNow()
+	Skipf(string, ...interface{})
+	Skipped() bool
+	StartTimer()
+	StopTimer()
+}
+
 // TestContext contains information necessary
 // to run or skip tests
 type TestContext struct {
@@ -62,17 +108,17 @@ func (tc *TestContext) RunOnly(tags ...string) {
 
 // Test executes a test under the given tag with the given testing environment
 // within the context of the TestContext instance
-func (tc *TestContext) Test(tag string, t *testing.T, testFn func(t *testing.T)) {
+func (tc *TestContext) Test(tag string, t T, testFn func(t T)) {
 	tc.run(tag, t, func(s skippable) {
-		testFn(s.(*testing.T))
+		testFn(s.(T))
 	})
 }
 
 // Benchmark executes a benchmark under the given tag with the given benchmarking
 // environment within the context of the TestFlags instance
-func (tc *TestContext) Benchmark(tag string, b *testing.B, benchmarkFn func(b *testing.B)) {
+func (tc *TestContext) Benchmark(tag string, b B, benchmarkFn func(b B)) {
 	tc.run(tag, b, func(s skippable) {
-		benchmarkFn(s.(*testing.B))
+		benchmarkFn(s.(B))
 	})
 }
 
@@ -194,13 +240,13 @@ func Distance(distance int) {
 
 // Test executes a test under the given tag with the given testing
 // environment within the default context
-func Test(tag string, t *testing.T, testFn func(t *testing.T)) {
+func Test(tag string, t T, testFn func(t T)) {
 	tc.Test(tag, t, testFn)
 }
 
 // Benchmark executes a benchmark under the given tag with the
 // the given benchmarking environment withint the default context
-func Benchmark(tag string, b *testing.B, benchmarkFn func(b *testing.B)) {
+func Benchmark(tag string, b B, benchmarkFn func(b B)) {
 	tc.Benchmark(tag, b, benchmarkFn)
 }
 
