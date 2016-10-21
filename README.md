@@ -4,7 +4,10 @@
 
 
 **Gotag** is a testing utility tool that makes it easy for you to selectively skip/run tests in Go. If you ever needed to mark a suite
-of integration tests to be skipped, then **Gotag** is the tool for the job.  
+of integration tests to be skipped, then **Gotag** is the tool for the job. 
+
+# Contents
+[Usage](#usage)
 
 ## Usage
 
