@@ -101,31 +101,35 @@ func (tc *TestContext) run(tag string, s skippable, fn func(s skippable)) {
 }
 
 func (tc *TestContext) shouldSkip(tag string) (string, skipReason) {
-	runOnly := len(tc.runOnly) > 0
-	skip := tc.skip[tag]
-	run := tc.runOnly[tag]
-	if !tc.Fuzzy {
-		if skip && !run {
-			return "", foundInSkip
+	if len(tc.runOnly) > 0 {
+		run := tc.runOnly[tag]
+		if run {
+			return "", doNotSkip
 		}
+		if !tc.Fuzzy {
+			return "", notInRunOnly
+		}
+
+		match, runFuzzy := tc.checkFuzzy(tag, tc.runOnly)
+		if !runFuzzy {
+			return "", notInRunOnly
+		}
+		return match, doNotSkipFuzzy
+	}
+
+	skip := tc.skip[tag]
+	if skip {
+		return "", foundInSkip
+	}
+	if !tc.Fuzzy {
 		return "", doNotSkip
 	}
 
-	skipMatch, skipFuzzy := tc.checkFuzzy(tag, tc.skip)
-	runMatch, runFuzzy := tc.checkFuzzy(tag, tc.runOnly)
-	if skip && !(run || runFuzzy) {
-		return "", foundInSkip
+	match, skipFuzzy := tc.checkFuzzy(tag, tc.skip)
+	if !skipFuzzy {
+		return "", doNotSkip
 	}
-	if skipFuzzy && !(run || runFuzzy) {
-		return skipMatch, fuzzyMatchSkip
-	}
-	if runOnly && !run {
-		if runFuzzy {
-			return runMatch, doNotSkipFuzzy
-		}
-		return "", notInRunOnly
-	}
-	return "", doNotSkip
+	return match, fuzzyMatchSkip
 }
 
 func (tc *TestContext) checkFuzzy(tag string, collection map[string]bool) (string, bool) {
