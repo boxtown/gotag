@@ -1,10 +1,17 @@
 # Gotag
 
-[![GoDoc](https://godoc.org/github.com/boxtown/gotag?status.svg)](https://godoc.org/github.com/boxtown/gotag)
+[![GoDoc](https://godoc.org/github.com/boxtown/gotag?status.svg)](https://godoc.org/github.com/boxtown/gotag) 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/boxtown/gotag/blob/master/LICENSE.md)
 
 
 **Gotag** is a testing utility tool that makes it easy for you to selectively skip/run tests in Go. If you ever needed to mark a suite
-of integration tests to be skipped, then **Gotag** is the tool for the job.  
+of integration tests to be skipped, then **Gotag** is the tool for the job. 
+
+# Contents
+[Usage](#usage)  
+[Selectively running tests](#selectively-running-tests)  
+[Tags](#tags)  
+[Roadmap](#roadmap)
 
 ## Usage
 
@@ -126,3 +133,8 @@ The edit distance can be configured as well
 ```Go
 gotag.Distance(5)
 ```
+
+## Roadmap
+
+- Load configuration from configuration files
+- Hooks for Before/After test logic
