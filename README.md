@@ -134,7 +134,22 @@ The edit distance can be configured as well
 gotag.Distance(5)
 ```
 
+## Loading from a config file
+
+**Gotag** contexts can loaded from JSON or YAML config files through the `Load` or `LoadFrom` functions.
+`Load` will look for a `.gotag.json` or `gotag.yml` file in the current working directory while `LoadFrom`
+will look inside a given directory path. If both files exist, `.gotag.json` takes precedence over `gotag.yml`.
+
+```Go
+import "github.com/boxtown/gotag"
+
+func main() {
+  context, _ := gotag.Load()
+  context, _ = gotag.LoadFrom("~/config/")
+}
+```
+
 ## Roadmap
 
-- Load configuration from configuration files
 - Hooks for Before/After test logic
+- Implement methods for load from config for default context
