@@ -11,6 +11,7 @@ of integration tests to be skipped, then **Gotag** is the tool for the job.
 [Usage](#usage)  
 [Selectively running tests](#selectively-running-tests)  
 [Tags](#tags)  
+[Loading from a config file](#loading-from-a-config-file)  
 [Roadmap](#roadmap)
 
 ## Usage
