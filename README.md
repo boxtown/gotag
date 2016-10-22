@@ -177,3 +177,4 @@ fuzzy: "false
 
 - Hooks for Before/After test logic
 - Implement methods for load from config for default context
+- Ability to wrap TestMain in a gotag
