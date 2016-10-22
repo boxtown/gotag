@@ -122,6 +122,16 @@ func (tc *TestContext) Benchmark(tag string, b B, benchmarkFn func(b B)) {
 	})
 }
 
+// SkippedTags returns a slice of skipped tags for the TestContext
+func (tc *TestContext) SkippedTags() []string {
+	return keys(tc.skip)
+}
+
+// RunTags returns a slice of run tags for the TestContext
+func (tc *TestContext) RunTags() []string {
+	return keys(tc.runOnly)
+}
+
 func (tc *TestContext) run(tag string, s skippable, fn func(s skippable)) {
 	match, reason := tc.shouldSkip(tag)
 	switch reason {
@@ -280,6 +290,17 @@ func min(vals ...int) int {
 		}
 	}
 	return min
+}
+
+// Returns the keys of a map as a slice
+func keys(m map[string]bool) []string {
+	s := make([]string, len(m))
+	i := 0
+	for k := range m {
+		s[i] = k
+		i++
+	}
+	return s
 }
 
 type skippable interface {
