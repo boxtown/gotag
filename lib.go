@@ -188,27 +188,6 @@ func (tc *TestContext) checkFuzzy(tag string, collection map[string]bool) (strin
 	return "", false
 }
 
-type skippable interface {
-	Skip(...interface{})
-	SkipNow()
-}
-
-type skipReason int
-
-const (
-	doNotSkip skipReason = iota
-	doNotSkipFuzzy
-	foundInSkip
-	fuzzyMatchSkip
-	notInRunOnly
-)
-
-var tc *TestContext
-
-func init() {
-	tc = New()
-}
-
 // Skip marks test tags to be skipped when running tests
 // within the default context
 func Skip(tags ...string) {
@@ -301,4 +280,25 @@ func min(vals ...int) int {
 		}
 	}
 	return min
+}
+
+type skippable interface {
+	Skip(...interface{})
+	SkipNow()
+}
+
+type skipReason int
+
+const (
+	doNotSkip skipReason = iota
+	doNotSkipFuzzy
+	foundInSkip
+	fuzzyMatchSkip
+	notInRunOnly
+)
+
+var tc *TestContext
+
+func init() {
+	tc = New()
 }
