@@ -150,6 +150,29 @@ func main() {
 }
 ```
 
+Configuration options:
+ - **skip**: array of string tags to be skipped
+ - **run**: array of string tags to be run, causes **skip** to be ignored
+ - **fuzzy**: boolean, sets fuzzy matching
+ - **distance**: int, sets fuzzy matching edit distance
+
+Example JSON config:
+
+```
+{
+  "skip": ["integration", "end-to-end"],
+  "fuzzy": true,
+  "distance": 3
+}
+```
+
+Example YAML config:
+
+```
+run: ["integration"],
+fuzzy: "false
+```
+
 ## Roadmap
 
 - Hooks for Before/After test logic
