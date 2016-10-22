@@ -1,8 +1,14 @@
 package gotag
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"testing"
+
+	yaml "gopkg.in/yaml.v2"
 )
 
 const (
@@ -59,6 +65,18 @@ type B interface {
 	StopTimer()
 }
 
+// ErrNoConfig is thrown by Load and LoadFrom when a .gotag.json or .gotag.yml
+// file could not be located
+var ErrNoConfig = errors.New("Could not locate configuration file")
+
+// Config holds configuration information for a TestContext
+type Config struct {
+	Skip         []string `json:"skip" yaml:"skip"`
+	Run          []string `json:"run" yaml:"run"`
+	Fuzzy        bool     `json:"fuzzy" yaml:"fuzzy"`
+	EditDistance int      `json:"distance" yaml:"distance"`
+}
+
 // TestContext contains information necessary
 // to run or skip tests
 type TestContext struct {
@@ -87,6 +105,59 @@ func New() *TestContext {
 		runOnly:      make(map[string]bool),
 		EditDistance: 2,
 	}
+}
+
+// Load attempts to load a test context from a .gotag config
+// file in the current working directory. Returns an error
+// if a config file could not be located or opened
+func Load() (*TestContext, error) {
+	f, err := os.Open(".gotag.json")
+	if err == nil {
+		defer f.Close()
+		config, err := loadJSONConfig(f)
+		if err != nil {
+			return nil, err
+		}
+		return fromConfig(config), nil
+	}
+	f, err = os.Open(".gotag.yml")
+	if err == nil {
+		defer f.Close()
+		config, err := loadYAMLConfig(f)
+		if err != nil {
+			return nil, err
+		}
+		return fromConfig(config), nil
+	}
+	return nil, ErrNoConfig
+}
+
+// LoadFrom attempts to load a test context from a .gotag config
+// file in the directory indicated by the given path.
+// Returns an error if a config file could not be located
+func LoadFrom(dir string) (*TestContext, error) {
+	if dir[len(dir)-1] != '/' {
+		dir = dir + "/"
+	}
+	f, err := os.Open(dir + ".gotag.json")
+	if err == nil {
+		defer f.Close()
+		config, err := loadJSONConfig(f)
+		if err != nil {
+			return nil, err
+		}
+		return fromConfig(config), nil
+	}
+	f, err = os.Open(dir + ".gotag.yml")
+	if err == nil {
+		defer f.Close()
+		config, err := loadYAMLConfig(f)
+		if err != nil {
+			return nil, err
+		}
+		return fromConfig(config), nil
+	}
+	return nil, ErrNoConfig
 }
 
 // Skip marks test tags to be skipped when testing
@@ -301,6 +372,50 @@ func keys(m map[string]bool) []string {
 		i++
 	}
 	return s
+}
+
+// convert a slice of strings to a map
+func toMap(s []string) map[string]bool {
+	m := make(map[string]bool)
+	for _, v := range s {
+		m[v] = true
+	}
+	return m
+}
+
+// creates a test context from a config
+func fromConfig(config *Config) *TestContext {
+	return &TestContext{
+		skip:         toMap(config.Skip),
+		runOnly:      toMap(config.Run),
+		Fuzzy:        config.Fuzzy,
+		EditDistance: config.EditDistance,
+	}
+}
+
+// attempts to read a config from json
+func loadJSONConfig(f *os.File) (*Config, error) {
+	var config Config
+	err := json.NewDecoder(f).Decode(&config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
+}
+
+// attempts to read a config from yaml
+func loadYAMLConfig(f *os.File) (*Config, error) {
+	bytes, err := ioutil.ReadAll(f)
+	if err != nil {
+		return nil, err
+	}
+
+	var config Config
+	err = yaml.Unmarshal(bytes, &config)
+	if err != nil {
+		return nil, err
+	}
+	return &config, nil
 }
 
 type skippable interface {
